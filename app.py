@@ -13,6 +13,7 @@ from utils.preprocessing import (
     preprocess_scaled_data
 )
 
+from algorithms.kmeans import run_kmeans, draw_kmeans_cluster
 from algorithms.naive_bayes import naive_bayes_predict
 from algorithms.correlation import run_correlation
 from algorithms.apriori import run_apriori
@@ -48,6 +49,7 @@ algorithm = st.sidebar.selectbox(
         "Rough Set",
         "Naive Bayes",
         "Decision Tree",
+        "K-means",
         "Logistic Regression",
         "Random Forest"
     ]
@@ -498,7 +500,63 @@ if uploaded_file is not None:
 
                 st.pyplot(fig)
 
-                
+            # ==================================================
+    # K-MEANS
+    # ==================================================
+
+        elif algorithm == "K-means":
+
+            st.subheader("GOM CỤM K-MEANS")
+
+            st.info(
+                "K-means là thuật toán gom cụm không giám sát, không sử dụng thuộc tính quyết định."
+            )
+
+            k = st.sidebar.slider(
+                "Chọn số cụm K",
+                2,
+                10,
+                3,
+                1
+            )
+
+            if st.button(
+                "Chạy K-means",
+                key="kmeans_btn"
+            ):
+
+                model, initial_result, final_result, encoded_result, scaled_data, initial_centroids = run_kmeans(
+                df,
+                 k
+                )
+
+                st.success("Gom cụm K-means thành công!")
+
+                st.subheader("Centroid ban đầu")
+                st.dataframe(pd.DataFrame(initial_centroids))
+
+                st.subheader("Phân cụm ban đầu")
+                st.dataframe(initial_result)
+
+                fig_initial = draw_kmeans_cluster(
+                    scaled_data,
+                    initial_result["Initial Cluster"],
+                    title="Biểu đồ phân cụm ban đầu"
+                )
+                st.pyplot(fig_initial)
+
+                st.subheader("Centroid cuối cùng")
+                st.dataframe(pd.DataFrame(model.cluster_centers_))
+
+                st.subheader("Kết quả phân cụm cuối cùng")
+                st.dataframe(final_result)
+
+                fig_final = draw_kmeans_cluster(
+                    scaled_data,
+                    final_result["Final Cluster"],
+                    title="Biểu đồ phân cụm cuối cùng"
+                )
+                st.pyplot(fig_final)        
 
         # ==================================================
         # LOGISTIC REGRESSION
