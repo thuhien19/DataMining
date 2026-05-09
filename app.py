@@ -9,7 +9,8 @@ from utils.evaluation import evaluate_model
 from utils.visualization import plot_confusion_matrix
 from utils.preprocessing import (
     preprocess_classification_data,
-    basic_preprocessing
+    basic_preprocessing, 
+    preprocess_scaled_data
 )
 
 from algorithms.naive_bayes import naive_bayes_predict
@@ -59,7 +60,7 @@ if uploaded_file is not None:
     )
 
     df = basic_preprocessing(df)
-    
+
     st.subheader("Dữ liệu ban đầu")
     st.dataframe(df)
 
@@ -366,10 +367,6 @@ if uploaded_file is not None:
     # CLASSIFICATION
     # ==================================================
 
-        # ==================================================
-    # CLASSIFICATION
-    # ==================================================
-
     else:
 
         st.info(
@@ -534,8 +531,133 @@ if uploaded_file is not None:
 
                 st.pyplot(fig_cm)
 
+        # ==================================================
+        # LOGISTIC REGRESSION
+        # ==================================================
+
+        elif algorithm == "Logistic Regression":
+
+            st.subheader(
+                "LOGISTIC REGRESSION"
+            )
+
+            (
+                X_train,
+                X_test,
+                y_train,
+                y_test,
+                target_col,
+                feature_cols,
+                encoders,
+                original_data,
+                encoded_data
+            ) = preprocess_scaled_data(df)
+
+            if st.button(
+                "Huấn luyện Logistic Regression",
+                key="lr_btn"
+            ):
+
+                model = run_logistic_regression(
+                    X_train,
+                    y_train
+                )
+
+                st.success(
+                    "Huấn luyện Logistic Regression thành công!"
+                )
+
+                # ==========================================
+                # DỰ ĐOÁN
+                # ==========================================
+
+                y_pred = model.predict(
+                    X_test
+                )
+
+                # ==========================================
+                # GIẢI MÃ LABEL
+                # ==========================================
+
+                y_true_label = encoders[
+                    target_col
+                ].inverse_transform(y_test)
+
+                y_pred_label = encoders[
+                    target_col
+                ].inverse_transform(y_pred)
+
+                # ==========================================
+                # KẾT QUẢ
+                # ==========================================
+
+                st.subheader(
+                    "KẾT QUẢ DỰ ĐOÁN"
+                )
+
+                result_df = pd.DataFrame({
+                    "Thực tế": y_true_label,
+                    "Dự đoán": y_pred_label
+                })
+
+                st.dataframe(result_df)
+
+                # ==========================================
+                # ACCURACY
+                # ==========================================
+
+                accuracy = accuracy_score(
+                    y_test,
+                    y_pred
+                )
+
+                st.subheader(
+                    "ĐỘ CHÍNH XÁC"
+                )
+
+                st.metric(
+                    "Accuracy",
+                    round(accuracy, 4)
+                )
+
+                # ==========================================
+                # CLASSIFICATION REPORT
+                # ==========================================
+
+                report = classification_report(
+                    y_test,
+                    y_pred,
+                    zero_division=0
+                )
+
+                st.subheader(
+                    "CLASSIFICATION REPORT"
+                )
+
+                st.text(report)
+
+                # ==========================================
+                # CONFUSION MATRIX
+                # ==========================================
+
+                matrix = confusion_matrix(
+                    y_test,
+                    y_pred
+                )
+
+                st.subheader(
+                    "CONFUSION MATRIX"
+                )
+
+                fig_cm = plot_confusion_matrix(
+                    matrix
+                )
+
+                st.pyplot(fig_cm)
+
 else:
 
     st.warning(
         "Vui lòng upload file CSV để bắt đầu."
     )
+
