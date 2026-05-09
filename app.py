@@ -7,6 +7,7 @@ from utils.visualization import plot_confusion_matrix
 
 from algorithms.correlation import run_correlation
 from algorithms.apriori import run_apriori
+from algorithms.rough_set import run_rough_set
 from algorithms.naive_bayes import run_naive_bayes
 from algorithms.decision_tree import run_decision_tree
 from algorithms.logistic_regression import run_logistic_regression
@@ -28,6 +29,7 @@ algorithm = st.sidebar.selectbox(
     [
         "Correlation",
         "Apriori",
+        "Rough Set",
         "Naive Bayes",
         "Decision Tree",
         "Logistic Regression",
@@ -161,7 +163,7 @@ if uploaded_file is not None:
             st.success(
                 "Tính ma trận tương quan thành công!"
             )
-            
+
             # ==========================================
             # MA TRẬN TƯƠNG QUAN
             # ==========================================
@@ -195,6 +197,161 @@ if uploaded_file is not None:
             )
 
             st.pyplot(fig)
+
+    # ==================================================
+    # ROUGH SET
+    # ==================================================
+
+    elif algorithm == "Rough Set":
+
+        st.subheader("CHỌN THUỘC TÍNH")
+
+        attrs = list(df.columns[:-1])
+
+        selected_attrs = st.multiselect(
+            "Chọn thuộc tính B",
+            attrs,
+            default=attrs[:2]
+        )
+
+        # ==========================================
+        # OBJECT IDs
+        # ==========================================
+
+        object_ids = [
+            f"O{i}"
+            for i in range(len(df))
+        ]
+
+        selected_objects = st.multiselect(
+            "Chọn tập X (dòng dữ liệu)",
+            object_ids,
+            default=object_ids[:3]
+        )
+
+        if st.button(
+            "Chạy thuật toán",
+            key="roughset_btn"
+        ):
+
+            (
+                equivalence_classes,
+                lower,
+                upper,
+                accuracy,
+                dependency,
+                reducts,
+                rules
+            ) = run_rough_set(
+                df,
+                selected_attrs,
+                selected_objects
+            )
+
+            st.success(
+                "Chạy Rough Set thành công!"
+            )
+
+            # ==========================================
+            # LỚP TƯƠNG ĐƯƠNG
+            # ==========================================
+
+            st.subheader(
+                "LỚP TƯƠNG ĐƯƠNG"
+            )
+
+            for i, eq in enumerate(
+                equivalence_classes,
+                1
+            ):
+
+                st.write(
+                    f"Lớp {i}: {sorted(eq)}"
+                )
+
+            # ==========================================
+            # LOWER APPROXIMATION
+            # ==========================================
+
+            st.subheader(
+                "XẤP XỈ DƯỚI"
+            )
+
+            st.success(
+                f"Lower(B,X) = {sorted(lower)}"
+            )
+
+            # ==========================================
+            # UPPER APPROXIMATION
+            # ==========================================
+
+            st.subheader(
+                "XẤP XỈ TRÊN"
+            )
+
+            st.info(
+                f"Upper(B,X) = {sorted(upper)}"
+            )
+
+            # ==========================================
+            # ĐỘ CHÍNH XÁC
+            # ==========================================
+
+            st.subheader(
+                "ĐỘ CHÍNH XÁC ROUGH SET"
+            )
+
+            st.metric(
+                "Accuracy",
+                accuracy
+            )
+
+            # ==========================================
+            # DEPENDENCY
+            # ==========================================
+
+            st.subheader(
+                "ĐỘ PHỤ THUỘC"
+            )
+
+            st.metric(
+                "Dependency",
+                dependency
+            )
+
+            # ==========================================
+            # REDUCT
+            # ==========================================
+
+            st.subheader(
+                "CÁC REDUCT"
+            )
+
+            reduct_df = pd.DataFrame({
+                "Reduct": [
+                    ", ".join(sorted(r))
+                    for r in reducts
+                ]
+            })
+
+            st.dataframe(reduct_df)
+
+            # ==========================================
+            # RULES
+            # ==========================================
+
+            st.subheader(
+                "LUẬT PHÂN LỚP"
+            )
+
+            for i, rule in enumerate(
+                rules,
+                1
+            ):
+
+                st.write(
+                    f"Luật {i}: {rule}"
+                )
     # ==================================================
     # CLASSIFICATION
     # ==================================================
