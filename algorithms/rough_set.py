@@ -1,21 +1,15 @@
 import pandas as pd
 from itertools import combinations
 
-
-# ==================================================
 # HÀM CHẠY ROUGH SET
-# ==================================================
 
 def run_rough_set(
     df,
     selected_attrs,
     selected_objects
 ):
-
-    # ==========================================
+ 
     # CHUẨN HÓA DỮ LIỆU
-    # ==========================================
-
     df.columns = df.columns.str.strip()
 
     df.index = [
@@ -23,66 +17,26 @@ def run_rough_set(
         for i in range(len(df))
     ]
 
-    # ==========================================
+ 
     # CHUẨN HÓA TẬP X
-    # ==========================================
-
     selected_objects = set(
         str(obj)
         for obj in selected_objects
     )
 
-    # ==========================================
-    # LOẠI BỎ CỘT ID
-    # ==========================================
-
-    ignore_cols = [
-        "STT",
-        "Id",
-        "ID",
-        "#",
-        "Tên",
-        "Transaction ID"
-    ]
-
-    # ==========================================
     # TOÀN BỘ THUỘC TÍNH
-    # (dùng cho reduct, dependency, rules)
-    # ==========================================
-
-    all_attrs = [
-        col
-        for col in df.columns[:-1]
-        if col not in ignore_cols
-    ]
-
-    # ==========================================
+    all_attrs = df.columns[:-1].tolist()
+ 
     # THUỘC TÍNH ĐƯỢC CHỌN
-    # (dùng cho xấp xỉ)
-    # ==========================================
-
-    attrs = [
-        col
-        for col in selected_attrs
-        if col not in ignore_cols
-    ]
-
-    # ==========================================
+    attrs = selected_attrs
+ 
     # THUỘC TÍNH QUYẾT ĐỊNH
-    # ==========================================
-
     decision = df.columns[-1]
 
-    # ==========================================
     # TẬP X
-    # ==========================================
-
     X = selected_objects
 
-    # ==========================================
     # LỚP TƯƠNG ĐƯƠNG
-    # ==========================================
-
     grouped = df.groupby(attrs)
 
     equivalence_classes = []
@@ -93,10 +47,8 @@ def run_rough_set(
 
         equivalence_classes.append(eq_class)
 
-    # ==========================================
+ 
     # LOWER APPROXIMATION
-    # ==========================================
-
     lower = set()
 
     for eq_class in equivalence_classes:
@@ -105,10 +57,8 @@ def run_rough_set(
 
             lower |= eq_class
 
-    # ==========================================
+ 
     # UPPER APPROXIMATION
-    # ==========================================
-
     upper = set()
 
     for eq_class in equivalence_classes:
@@ -117,10 +67,8 @@ def run_rough_set(
 
             upper |= eq_class
 
-    # ==========================================
+ 
     # ĐỘ CHÍNH XÁC
-    # ==========================================
-
     accuracy = 0
 
     if len(upper) > 0:
@@ -130,10 +78,8 @@ def run_rough_set(
             3
         )
 
-    # ==========================================
+ 
     # POSITIVE REGION
-    # ==========================================
-
     grouped_all = df.groupby(all_attrs)
 
     positive = []
@@ -151,10 +97,8 @@ def run_rough_set(
         3
     )
 
-     # ==========================================
+  
     # MA TRẬN PHÂN BIỆT
-    # ==========================================
-
     disc = []
 
     for i in range(len(df)):
@@ -176,10 +120,8 @@ def run_rough_set(
 
                     disc.append(set(diff))
 
-    # ==========================================
+ 
     # KIỂM TRA REDUCT
-    # ==========================================
-
     def is_red(subset, disc):
 
         subset = set(subset)
@@ -193,10 +135,8 @@ def run_rough_set(
 
         return True
 
-    # ==========================================
+ 
     # TÌM REDUCT TỐI THIỂU
-    # ==========================================
-
     reducts = []
 
     for r in range(1, len(all_attrs) + 1):
@@ -226,10 +166,8 @@ def run_rough_set(
 
                     reducts.append(sub)
 
-    # ==========================================
+ 
     # SINH LUẬT PHÂN LỚP
-    # ==========================================
-
     rules = []
 
     for reduct in reducts:
@@ -265,10 +203,8 @@ def run_rough_set(
 
                 rules.append(rule)
 
-    # ==========================================
+ 
     # RETURN
-    # ==========================================
-
     return (
         equivalence_classes,
         lower,

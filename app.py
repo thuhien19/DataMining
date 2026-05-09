@@ -182,9 +182,7 @@ if uploaded_file is not None:
                 "Tính ma trận tương quan thành công!"
             )
 
-            # ==========================================
             # MA TRẬN TƯƠNG QUAN
-            # ==========================================
 
             st.subheader(
                 "MA TRẬN TƯƠNG QUAN"
@@ -192,9 +190,7 @@ if uploaded_file is not None:
 
             st.dataframe(correlation_matrix)
 
-            # ==========================================
             # HEATMAP
-            # ==========================================
 
             import matplotlib.pyplot as plt
             import seaborn as sns

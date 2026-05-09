@@ -1,9 +1,8 @@
 from sklearn.linear_model import LogisticRegression
 
 
-# ==================================================
+
 # LOGISTIC REGRESSION
-# ==================================================
 
 def run_logistic_regression(
     X,

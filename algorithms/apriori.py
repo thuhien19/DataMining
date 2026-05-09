@@ -14,10 +14,8 @@ def run_apriori(
     min_confidence=0.6
 ):
 
-    # =========================
+   
     # CHUYỂN DỮ LIỆU THÀNH TRANSACTIONS
-    # =========================
-
     transactions = []
 
     for _, row in data.iterrows():
@@ -32,10 +30,8 @@ def run_apriori(
 
         transactions.append(transaction)
 
-    # =========================
+   
     # ENCODE DỮ LIỆU
-    # =========================
-
     te = TransactionEncoder()
 
     te_array = te.fit(transactions).transform(transactions)
@@ -45,20 +41,16 @@ def run_apriori(
         columns=te.columns_
     )
 
-    # =========================
+   
     # TÌM TẬP PHỔ BIẾN
-    # =========================
-
     frequent_itemsets = apriori(
         df,
         min_support=min_support,
         use_colnames=True
     )
 
-    # =========================
+   
     # TÌM LUẬT KẾT HỢP
-    # =========================
-
     rules = association_rules(
         frequent_itemsets,
         metric="confidence",

@@ -1,18 +1,12 @@
 import pandas as pd
 
-
-# ==========================================
 # HÀM TÍNH TRUNG BÌNH
-# ==========================================
 
 def mean(data):
 
     return sum(data) / len(data)
 
-
-# ==========================================
 # HÀM TÍNH PEARSON CORRELATION
-# ==========================================
 
 def pearson_correlation(x, y):
 
@@ -27,18 +21,18 @@ def pearson_correlation(x, y):
     mean_x = mean(x)
     mean_y = mean(y)
 
-    # ==========================================
+     
     # TỬ SỐ
-    # ==========================================
+     
 
     numerator = sum(
         (x[i] - mean_x) * (y[i] - mean_y)
         for i in range(n)
     )
 
-    # ==========================================
+     
     # MẪU SỐ
-    # ==========================================
+     
 
     denominator_x = sum(
         (x[i] - mean_x) ** 2
@@ -61,18 +55,15 @@ def pearson_correlation(x, y):
     return numerator / denominator
 
 
-# ==========================================
 # HÀM CHẠY TƯƠNG QUAN
-# ==========================================
 
 def run_correlation(df):
 
     # Copy dữ liệu
     df_encoded = df.copy()
 
-    # ==========================================
-    # MÃ HÓA TOÀN BỘ CỘT
-    # ==========================================
+     
+    # MÃ HÓA TOÀN BỘ CỘT 
 
     for col in df_encoded.columns:
 
@@ -85,10 +76,9 @@ def run_correlation(df):
                 df_encoded[col].astype(str)
             )[0]
 
-    # ==========================================
+     
     # TẠO MA TRẬN TƯƠNG QUAN
-    # ==========================================
-
+     
     columns = df_encoded.columns
 
     correlation_matrix = pd.DataFrame(
@@ -96,9 +86,8 @@ def run_correlation(df):
         columns=columns
     )
 
-    # ==========================================
+     
     # TÍNH TƯƠNG QUAN
-    # ==========================================
 
     for col1 in columns:
 

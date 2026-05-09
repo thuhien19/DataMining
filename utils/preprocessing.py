@@ -81,7 +81,6 @@ def encode_data(data):
 
 def preprocess_classification_data(df):
     data = df.copy()
-
     data = basic_preprocessing(df)
 
 
@@ -106,26 +105,28 @@ def preprocess_classification_data(df):
 # PREPROCESS CHO LOGISTIC / RAMDOM
 def preprocess_scaled_data(df):
 
+    # Xu ly co ban
     data = basic_preprocessing(df)
 
     target_col = data.columns[-1]
 
     feature_cols = data.columns[:-1].tolist()
 
+    # Encode
     encoded_data, encoders = encode_data(data)
 
     X = encoded_data[feature_cols]
-
     y = encoded_data[target_col]
 
-    # SCALE
+    # Scale
     scaler = MinMaxScaler()
 
     X = pd.DataFrame(
         scaler.fit_transform(X),
         columns=feature_cols
     )
-
+    
+    # Chia train test
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
