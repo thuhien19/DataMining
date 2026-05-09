@@ -13,6 +13,7 @@ from utils.preprocessing import (
     preprocess_scaled_data
 )
 
+from algorithms.kmeans import run_kmeans, draw_kmeans_cluster
 from algorithms.naive_bayes import naive_bayes_predict
 from algorithms.correlation import run_correlation
 from algorithms.apriori import run_apriori
@@ -48,6 +49,7 @@ algorithm = st.sidebar.selectbox(
         "Rough Set",
         "Naive Bayes",
         "Decision Tree",
+        "K-means",
         "Logistic Regression",
         "Random Forest"
     ]
@@ -372,9 +374,9 @@ if uploaded_file is not None:
 
     else:
 
-        st.info(
-            "Hệ thống mặc định cột cuối cùng là thuộc tính quyết định."
-        )
+        # st.info(
+        #     "Hệ thống mặc định cột cuối cùng là thuộc tính quyết định."
+        # )
 
         X, y, target_col, feature_cols, encoders, original_data, encoded_data = preprocess_classification_data(df)
 
@@ -494,7 +496,63 @@ if uploaded_file is not None:
 
                 st.pyplot(fig)
 
-                
+            # ==================================================
+    # K-MEANS
+    # ==================================================
+
+        elif algorithm == "K-means":
+
+            st.subheader("GOM CỤM K-MEANS")
+
+            st.info(
+                "K-means là thuật toán gom cụm không giám sát, không sử dụng thuộc tính quyết định."
+            )
+
+            k = st.sidebar.slider(
+                "Chọn số cụm K",
+                2,
+                10,
+                3,
+                1
+            )
+
+            if st.button(
+                "Chạy K-means",
+                key="kmeans_btn"
+            ):
+
+                model, initial_result, final_result, encoded_result, scaled_data, initial_centroids = run_kmeans(
+                df,
+                 k
+                )
+
+                st.success("Gom cụm K-means thành công!")
+
+                st.subheader("Centroid ban đầu")
+                st.dataframe(pd.DataFrame(initial_centroids))
+
+                st.subheader("Phân cụm ban đầu")
+                st.dataframe(initial_result)
+
+                fig_initial = draw_kmeans_cluster(
+                    scaled_data,
+                    initial_result["Initial Cluster"],
+                    title="Biểu đồ phân cụm ban đầu"
+                )
+                st.pyplot(fig_initial)
+
+                st.subheader("Centroid cuối cùng")
+                st.dataframe(pd.DataFrame(model.cluster_centers_))
+
+                st.subheader("Kết quả phân cụm cuối cùng")
+                st.dataframe(final_result)
+
+                fig_final = draw_kmeans_cluster(
+                    scaled_data,
+                    final_result["Final Cluster"],
+                    title="Biểu đồ phân cụm cuối cùng"
+                )
+                st.pyplot(fig_final)        
 
         # ==================================================
         # LOGISTIC REGRESSION
@@ -684,6 +742,230 @@ if uploaded_file is not None:
                             "prediction_result.csv",
                             "text/csv"
                         )
+
+            # THAY TOÀN BỘ PHẦN RANDOM FOREST TRONG app.py
+
+
+        # ==================================================
+        # RANDOM FOREST
+        # ==================================================
+
+        elif algorithm == "Random Forest":
+
+            st.subheader(
+                "RANDOM FOREST"
+            )
+
+            (
+                X_train,
+                X_test,
+                y_train,
+                y_test,
+                target_col,
+                feature_cols,
+                encoders,
+                original_data,
+                encoded_data
+            ) = preprocess_scaled_data(df)
+
+            # ==========================================
+            # TRAIN MODEL
+            # ==========================================
+
+            if st.button(
+                "Huấn luyện Random Forest",
+                key="rf_btn"
+            ):
+
+                (
+                    model,
+                    y_pred,
+                    accuracy,
+                    report,
+                    matrix,
+                    n_estimators,
+                    max_depth
+                ) = run_random_forest(
+                    X_train,
+                    X_test,
+                    y_train,
+                    y_test
+                )
+
+                st.session_state["rf_model"] = model
+
+                st.success(
+                    "Huấn luyện Random Forest thành công!"
+                )
+
+                # ==========================================
+                # THAM SỐ RANDOM
+                # ==========================================
+
+                st.subheader(
+                    "THAM SỐ TỰ ĐỘNG"
+                )
+
+                st.write(
+                    f"Số cây được chọn: {n_estimators}"
+                )
+
+
+                st.write(
+                    f"Độ sâu cây: {max_depth}"
+                )
+
+                # ==========================================
+                # KẾT QUẢ DỰ ĐOÁN
+                # ==========================================
+
+                y_true_label = encoders[
+                    target_col
+                ].inverse_transform(y_test)
+
+                y_pred_label = encoders[
+                    target_col
+                ].inverse_transform(y_pred)
+
+                result_df = pd.DataFrame({
+                    "Thực tế": y_true_label,
+                    "Dự đoán": y_pred_label
+                })
+
+                st.subheader(
+                    "KẾT QUẢ DỰ ĐOÁN"
+                )
+
+                st.dataframe(result_df)
+
+                # ==========================================
+                # ACCURACY
+                # ==========================================
+
+                st.subheader(
+                    "ĐỘ CHÍNH XÁC"
+                )
+
+                st.metric(
+                    "Accuracy",
+                    round(accuracy, 4)
+                )
+
+                # ==========================================
+                # REPORT
+                # ==========================================
+
+                st.subheader(
+                    "CLASSIFICATION REPORT"
+                )
+
+                st.text(report)
+
+                # ==========================================
+                # CONFUSION MATRIX
+                # ==========================================
+
+                st.subheader(
+                    "CONFUSION MATRIX"
+                )
+
+                fig_cm = plot_confusion_matrix(
+                    matrix
+                )
+
+                st.pyplot(fig_cm)
+
+            # ==================================================
+            # DỰ ĐOÁN FILE MỚI
+            # ==================================================
+
+            st.divider()
+
+            st.subheader(
+                "DỰ ĐOÁN FILE MỚI"
+            )
+
+            predict_file = st.file_uploader(
+                "Upload file CSV hoặc Excel",
+                type=["csv", "xlsx"],
+                key="rf_predict_file"
+            )
+
+            # ==========================================
+            # KIỂM TRA MODEL
+            # ==========================================
+
+            if "rf_model" not in st.session_state:
+
+                st.warning(
+                    "Vui lòng huấn luyện Random Forest trước."
+                )
+
+            else:
+
+                if predict_file is not None:
+
+                    # ==========================================
+                    # READ FILE
+                    # ==========================================
+
+                    if predict_file.name.endswith(".csv"):
+
+                        predict_df = pd.read_csv(
+                            predict_file
+                        )
+
+                    else:
+
+                        predict_df = pd.read_excel(
+                            predict_file
+                        )
+
+                    st.subheader(
+                        "DỮ LIỆU CẦN DỰ ĐOÁN"
+                    )
+
+                    st.dataframe(predict_df)
+
+                    # ==========================================
+                    # BUTTON PREDICT
+                    # ==========================================
+
+                    if st.button(
+                        "Dự đoán Random Forest",
+                        key="predict_rf_btn"
+                    ):
+
+                        result_df = predict_new_data(
+                            predict_df,
+                            st.session_state["rf_model"],
+                            feature_cols,
+                            encoders,
+                            target_col,
+                            encoded_data
+                        )
+
+                        st.subheader(
+                            "KẾT QUẢ DỰ ĐOÁN"
+                        )
+
+                        st.dataframe(result_df)
+
+                        # ==========================================
+                        # DOWNLOAD CSV
+                        # ==========================================
+
+                        csv = result_df.to_csv(
+                            index=False
+                        ).encode("utf-8")
+
+                        st.download_button(
+                            "Tải file kết quả",
+                            csv,
+                            "random_forest_prediction.csv",
+                            "text/csv"
+                        )
+
 else:
 
     st.warning(
