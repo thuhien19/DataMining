@@ -378,9 +378,9 @@ if uploaded_file is not None:
 
     else:
 
-        st.info(
-            "Hệ thống mặc định cột cuối cùng là thuộc tính quyết định."
-        )
+        # st.info(
+        #     "Hệ thống mặc định cột cuối cùng là thuộc tính quyết định."
+        # )
 
         X, y, target_col, feature_cols, encoders, original_data, encoded_data = preprocess_classification_data(df)
 
