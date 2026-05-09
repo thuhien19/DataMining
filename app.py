@@ -10,10 +10,12 @@ from utils.visualization import plot_confusion_matrix
 from utils.preprocessing import preprocess_classification_data
 
 from algorithms.naive_bayes import naive_bayes_predict
-from algorithms.decision_tree import run_decision_tree, draw_decision_tree
 from algorithms.correlation import run_correlation
 from algorithms.apriori import run_apriori
-from algorithms.decision_tree import run_decision_tree
+from algorithms.decision_tree import (
+    build_tree,
+    draw_categorical_tree
+)
 from algorithms.logistic_regression import run_logistic_regression
 
 from algorithms.random_forest import run_random_forest
@@ -300,77 +302,39 @@ if uploaded_file is not None:
 
             if tree_type == "Information Gain / Entropy":
                 criterion = "entropy"
+                title = "Cây quyết định ID3 - Information Gain"
             else:
                 criterion = "gini"
+                title = "Cây quyết định CART - Gini Index"
 
             if st.button(
                 "Xây dựng cây quyết định",
                 key="dt_btn"
             ):
 
-                model = run_decision_tree(
-                    X,
-                    y,
+                tree = build_tree(
+                    original_data,
+                    feature_cols,
+                    target_col,
                     criterion=criterion
                 )
 
                 st.success("Xây dựng cây quyết định thành công!")
 
-                class_names = encoders[target_col].classes_
+                st.subheader("Cấu trúc cây quyết định")
 
-                st.subheader("Cây quyết định")
+                st.json(tree)
 
-                fig = draw_decision_tree(
-                    model,
-                    feature_cols,
-                    class_names
+                st.subheader("Cây quyết định trực quan")
+
+                fig = draw_categorical_tree(
+                    tree,
+                    title=title
                 )
 
                 st.pyplot(fig)
 
-                st.subheader("Kết quả dự đoán trên tập dữ liệu")
-
-                y_pred = model.predict(X)
-
-                y_true_label = encoders[target_col].inverse_transform(y)
-                y_pred_label = encoders[target_col].inverse_transform(y_pred)
-
-                result_df = pd.DataFrame({
-                    "Thực tế": y_true_label,
-                    "Dự đoán": y_pred_label
-                })
-
-                st.dataframe(result_df)
-
-                accuracy = accuracy_score(y, y_pred)
-
-                st.subheader("Độ chính xác")
-
-                st.metric(
-                    "Accuracy",
-                    round(accuracy, 4)
-                )
-
-                report = classification_report(
-                    y,
-                    y_pred,
-                    zero_division=0
-                )
-
-                st.subheader("Classification Report")
-
-                st.text(report)
-
-                matrix = confusion_matrix(
-                    y,
-                    y_pred
-                )
-
-                st.subheader("Confusion Matrix")
-
-                fig_cm = plot_confusion_matrix(matrix)
-
-                st.pyplot(fig_cm)
+                
 
 else:
 
