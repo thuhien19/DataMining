@@ -1,13 +1,18 @@
 import streamlit as st
 import pandas as pd
-
-from utils.preprocessing import preprocess_data
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix
+)
 from utils.evaluation import evaluate_model
 from utils.visualization import plot_confusion_matrix
+from utils.preprocessing import preprocess_classification_data
 
+from algorithms.naive_bayes import naive_bayes_predict
+from algorithms.decision_tree import run_decision_tree, draw_decision_tree
 from algorithms.correlation import run_correlation
 from algorithms.apriori import run_apriori
-from algorithms.naive_bayes import run_naive_bayes
 from algorithms.decision_tree import run_decision_tree
 from algorithms.logistic_regression import run_logistic_regression
 
@@ -199,103 +204,173 @@ if uploaded_file is not None:
     # CLASSIFICATION
     # ==================================================
 
+        # ==================================================
+    # CLASSIFICATION
+    # ==================================================
+
     else:
 
         st.info(
             "Hệ thống mặc định cột cuối cùng là thuộc tính quyết định."
         )
 
-        X_train, X_test, y_train, y_test, target_col, encoders = preprocess_data(df)
+        X, y, target_col, feature_cols, encoders, original_data, encoded_data = preprocess_classification_data(df)
 
         st.write("Thuộc tính quyết định:", target_col)
 
-        st.write("Số dòng train:", len(X_train))
-        st.write("Số dòng test:", len(X_test))
+        st.subheader("Các thuộc tính điều kiện")
+        st.write(feature_cols)
 
-        if st.button(
-            "Chạy Classification",
-            key="classification_btn"
-        ):
+        # ==================================================
+        # NAIVE BAYES
+        # ==================================================
 
-            if algorithm == "Naive Bayes":
+        if algorithm == "Naive Bayes":
 
-                model = run_naive_bayes(
-                    X_train,
-                    y_train
+            st.subheader("DỰ ĐOÁN BẰNG NAIVE BAYES")
+
+            nb_type = st.radio(
+                "Chọn loại Naive Bayes",
+                [
+                    "Naive Bayes thường",
+                    "Naive Bayes có làm trơn Laplace"
+                ]
+            )
+
+            input_values = {}
+
+            st.write("Chọn giá trị cho từng thuộc tính:")
+
+            for col in feature_cols:
+                values = original_data[col].unique().tolist()
+
+                input_values[col] = st.selectbox(
+                    f"{col}",
+                    values,
+                    key=f"nb_{col}"
                 )
 
-            elif algorithm == "Decision Tree":
+            if st.button(
+                "Dự đoán Naive Bayes",
+                key="nb_predict_btn"
+            ):
+
+                laplace = True if nb_type == "Naive Bayes có làm trơn Laplace" else False
+
+                predicted_class, result_df = naive_bayes_predict(
+                    original_data,
+                    input_values,
+                    target_col,
+                    laplace=laplace
+                )
+
+                st.success("Dự đoán thành công!")
+
+                st.subheader("Dữ liệu cần dự đoán")
+
+                input_df = pd.DataFrame([input_values])
+                st.dataframe(input_df)
+
+                st.subheader("Bảng xác suất")
+
+                st.dataframe(result_df)
+
+                st.subheader("Kết quả dự đoán")
+
+                st.metric(
+                    "Lớp dự đoán",
+                    predicted_class
+                )
+
+        # ==================================================
+        # DECISION TREE
+        # ==================================================
+
+        elif algorithm == "Decision Tree":
+
+            st.subheader("CÂY QUYẾT ĐỊNH")
+
+            tree_type = st.radio(
+                "Chọn tiêu chí phân chia",
+                [
+                    "Information Gain / Entropy",
+                    "Gini Index"
+                ]
+            )
+
+            if tree_type == "Information Gain / Entropy":
+                criterion = "entropy"
+            else:
+                criterion = "gini"
+
+            if st.button(
+                "Xây dựng cây quyết định",
+                key="dt_btn"
+            ):
 
                 model = run_decision_tree(
-                    X_train,
-                    y_train
+                    X,
+                    y,
+                    criterion=criterion
                 )
 
-            elif algorithm == "Logistic Regression":
+                st.success("Xây dựng cây quyết định thành công!")
 
-                model = run_logistic_regression(
-                    X_train,
-                    y_train
+                class_names = encoders[target_col].classes_
+
+                st.subheader("Cây quyết định")
+
+                fig = draw_decision_tree(
+                    model,
+                    feature_cols,
+                    class_names
                 )
 
-            elif algorithm == "Random Forest":
+                st.pyplot(fig)
 
-                model = run_random_forest(
-                    X_train,
-                    y_train
+                st.subheader("Kết quả dự đoán trên tập dữ liệu")
+
+                y_pred = model.predict(X)
+
+                y_true_label = encoders[target_col].inverse_transform(y)
+                y_pred_label = encoders[target_col].inverse_transform(y_pred)
+
+                result_df = pd.DataFrame({
+                    "Thực tế": y_true_label,
+                    "Dự đoán": y_pred_label
+                })
+
+                st.dataframe(result_df)
+
+                accuracy = accuracy_score(y, y_pred)
+
+                st.subheader("Độ chính xác")
+
+                st.metric(
+                    "Accuracy",
+                    round(accuracy, 4)
                 )
 
-            accuracy, report, matrix, y_pred = evaluate_model(
-                model,
-                X_test,
-                y_test
-            )
+                report = classification_report(
+                    y,
+                    y_pred,
+                    zero_division=0
+                )
 
-            st.success(
-                "Huấn luyện mô hình thành công!"
-            )
+                st.subheader("Classification Report")
 
-            # ==========================================
-            # KẾT QUẢ DỰ ĐOÁN
-            # ==========================================
+                st.text(report)
 
-            st.subheader("KẾT QUẢ DỰ ĐOÁN")
+                matrix = confusion_matrix(
+                    y,
+                    y_pred
+                )
 
-            result_df = pd.DataFrame({
-                "Thực tế": y_test.values,
-                "Dự đoán": y_pred
-            })
+                st.subheader("Confusion Matrix")
 
-            st.dataframe(result_df)
+                fig_cm = plot_confusion_matrix(matrix)
 
-            # ==========================================
-            # ACCURACY
-            # ==========================================
-
-            st.subheader("ĐỘ CHÍNH XÁC ACCURACY")
-
-            st.metric(
-                "Accuracy",
-                round(accuracy, 4)
-            )
-
-            # ==========================================
-            # REPORT
-            # ==========================================
-
-            st.subheader("CLASSIFICATION REPORT")
-
-            st.text(report)
-
-            # ==========================================
-            # CONFUSION MATRIX
-            # ==========================================
-
-            st.subheader("CONFUSION MATRIX")
-
-            fig = plot_confusion_matrix(matrix)
-
-            st.pyplot(fig)
+                st.pyplot(fig_cm)
 
 else:
 

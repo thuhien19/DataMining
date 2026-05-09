@@ -1,34 +1,24 @@
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-
-def preprocess_data(df):
+def preprocess_classification_data(df):
     data = df.copy()
 
-    # Bỏ cột STT nếu có
     if "STT" in data.columns:
         data = data.drop(columns=["STT"])
 
-    # Cột cuối cùng là thuộc tính quyết định
     target_col = data.columns[-1]
+    feature_cols = data.columns[:-1].tolist()
 
-    # Mã hóa dữ liệu dạng chữ
     encoders = {}
 
-    for col in data.columns:
-        if data[col].dtype == "object":
-            encoder = LabelEncoder()
-            data[col] = encoder.fit_transform(data[col].astype(str))
-            encoders[col] = encoder
+    encoded_data = data.copy()
 
-    X = data.drop(columns=[target_col])
-    y = data[target_col]
+    for col in encoded_data.columns:
+        le = LabelEncoder()
+        encoded_data[col] = le.fit_transform(encoded_data[col].astype(str))
+        encoders[col] = le
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.3,
-        random_state=42
-    )
+    X = encoded_data[feature_cols]
+    y = encoded_data[target_col]
 
-    return X_train, X_test, y_train, y_test, target_col, encoders
+    return X, y, target_col, feature_cols, encoders, data, encoded_data
