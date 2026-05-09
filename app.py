@@ -26,6 +26,10 @@ from algorithms.logistic_regression import run_logistic_regression
 
 from algorithms.random_forest import run_random_forest
 
+from prediction.bank_prediction import (
+    predict_new_data
+)
+
 
 st.set_page_config(
     page_title="Data Mining App",
@@ -518,31 +522,33 @@ if uploaded_file is not None:
                 encoded_data
             ) = preprocess_scaled_data(df)
 
+            # ==========================================
+            # TRAIN MODEL
+            # ==========================================
+
             if st.button(
                 "Huấn luyện Logistic Regression",
                 key="lr_btn"
             ):
 
-                model = run_logistic_regression(
+                st.session_state["lr_model"] = run_logistic_regression(
                     X_train,
                     y_train
                 )
+
+                model = st.session_state["lr_model"]
 
                 st.success(
                     "Huấn luyện Logistic Regression thành công!"
                 )
 
                 # ==========================================
-                # DỰ ĐOÁN
+                # DỰ ĐOÁN TEST
                 # ==========================================
 
                 y_pred = model.predict(
                     X_test
                 )
-
-                # ==========================================
-                # GIẢI MÃ LABEL
-                # ==========================================
 
                 y_true_label = encoders[
                     target_col
@@ -552,24 +558,16 @@ if uploaded_file is not None:
                     target_col
                 ].inverse_transform(y_pred)
 
-                # ==========================================
-                # KẾT QUẢ
-                # ==========================================
-
-                st.subheader(
-                    "KẾT QUẢ DỰ ĐOÁN"
-                )
-
                 result_df = pd.DataFrame({
                     "Thực tế": y_true_label,
                     "Dự đoán": y_pred_label
                 })
 
-                st.dataframe(result_df)
+                st.subheader(
+                    "KẾT QUẢ DỰ ĐOÁN"
+                )
 
-                # ==========================================
-                # ACCURACY
-                # ==========================================
+                st.dataframe(result_df)
 
                 accuracy = accuracy_score(
                     y_test,
@@ -585,10 +583,6 @@ if uploaded_file is not None:
                     round(accuracy, 4)
                 )
 
-                # ==========================================
-                # CLASSIFICATION REPORT
-                # ==========================================
-
                 report = classification_report(
                     y_test,
                     y_pred,
@@ -600,10 +594,6 @@ if uploaded_file is not None:
                 )
 
                 st.text(report)
-
-                # ==========================================
-                # CONFUSION MATRIX
-                # ==========================================
 
                 matrix = confusion_matrix(
                     y_test,
@@ -620,6 +610,84 @@ if uploaded_file is not None:
 
                 st.pyplot(fig_cm)
 
+            # ==========================================
+            # UPLOAD FILE PREDICT
+            # ==========================================
+
+            st.divider()
+
+            st.subheader(
+                "DỰ ĐOÁN KHÁCH HÀNG TỪ FILE CSV"
+            )
+
+            predict_file = st.file_uploader(
+                "Upload file khách hàng mới",
+                type=["csv"],
+                key="lr_predict_file"
+            )
+
+            # ==========================================
+            # KIỂM TRA MODEL
+            # ==========================================
+
+            if "lr_model" not in st.session_state:
+
+                st.warning(
+                    "Vui lòng huấn luyện Logistic Regression trước."
+                )
+
+            else:
+
+                if predict_file is not None:
+
+                    predict_df = pd.read_csv(
+                        predict_file
+                    )
+
+                    st.subheader(
+                        "Dữ liệu cần dự đoán"
+                    )
+
+                    st.dataframe(predict_df)
+
+                    # ==========================================
+                    # BUTTON PREDICT
+                    # ==========================================
+
+                    if st.button(
+                        "Dự đoán khách hàng",
+                        key="predict_lr_btn"
+                    ):
+
+                        result_df = predict_new_data(
+                            predict_df,
+                            st.session_state["lr_model"],
+                            feature_cols,
+                            encoders,
+                            target_col,
+                            encoded_data
+                        )
+
+                        st.subheader(
+                            "KẾT QUẢ DỰ ĐOÁN"
+                        )
+
+                        st.dataframe(result_df)
+
+                        # ==========================================
+                        # DOWNLOAD CSV
+                        # ==========================================
+
+                        csv = result_df.to_csv(
+                            index=False
+                        ).encode("utf-8")
+
+                        st.download_button(
+                            "Tải file kết quả",
+                            csv,
+                            "prediction_result.csv",
+                            "text/csv"
+                        )
 else:
 
     st.warning(
