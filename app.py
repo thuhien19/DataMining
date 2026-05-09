@@ -7,14 +7,16 @@ from sklearn.metrics import (
 )
 from utils.evaluation import evaluate_model
 from utils.visualization import plot_confusion_matrix
-from utils.preprocessing import preprocess_classification_data
+from utils.preprocessing import (
+    preprocess_classification_data,
+    basic_preprocessing
+)
 
 from algorithms.naive_bayes import naive_bayes_predict
 from algorithms.decision_tree import run_decision_tree, draw_decision_tree
 from algorithms.correlation import run_correlation
 from algorithms.apriori import run_apriori
 from algorithms.rough_set import run_rough_set
-from algorithms.naive_bayes import run_naive_bayes
 from algorithms.decision_tree import run_decision_tree
 from algorithms.logistic_regression import run_logistic_regression
 
@@ -56,6 +58,8 @@ if uploaded_file is not None:
         engine="python"
     )
 
+    df = basic_preprocessing(df)
+    
     st.subheader("Dữ liệu ban đầu")
     st.dataframe(df)
 
