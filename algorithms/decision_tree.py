@@ -3,10 +3,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from collections import Counter
 
-
-# =========================
 # TÍNH ENTROPY / GINI
-# =========================
 
 def entropy(labels):
     total = len(labels)
@@ -36,9 +33,7 @@ def majority_class(labels):
     return Counter(labels).most_common(1)[0][0]
 
 
-# =========================
 # CHỌN THUỘC TÍNH TỐT NHẤT
-# =========================
 
 def best_attribute(data, attributes, target_col, criterion):
     base_value = entropy(data[target_col]) if criterion == "entropy" else gini(data[target_col])
@@ -66,10 +61,7 @@ def best_attribute(data, attributes, target_col, criterion):
 
     return best_attr
 
-
-# =========================
 # XÂY CÂY
-# =========================
 
 def build_tree(data, attributes, target_col, criterion="entropy"):
     labels = data[target_col]
@@ -110,11 +102,7 @@ def build_tree(data, attributes, target_col, criterion="entropy"):
 
     return tree
 
-
-
-# =========================
 # VẼ CÂY ĐẸP
-# =========================
 
 def add_tree_to_graph(graph, tree, parent_id=None, edge_label="", counter=[0]):
     counter[0] += 1
@@ -134,8 +122,7 @@ def add_tree_to_graph(graph, tree, parent_id=None, edge_label="", counter=[0]):
                 parent_id,
                 node_id,
                 label=edge_label
-            )
-
+            )     
         for branch_value, subtree in tree[root_label].items():
             add_tree_to_graph(
                 graph,

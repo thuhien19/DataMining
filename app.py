@@ -784,9 +784,7 @@ if uploaded_file is not None:
                     y_pred,
                     accuracy,
                     report,
-                    matrix,
-                    n_estimators,
-                    max_depth
+                    matrix
                 ) = run_random_forest(
                     X_train,
                     X_test,
@@ -804,18 +802,18 @@ if uploaded_file is not None:
                 # THAM SỐ RANDOM
                 # ==========================================
 
-                st.subheader(
-                    "THAM SỐ TỰ ĐỘNG"
-                )
+                # st.subheader(
+                #     "THAM SỐ "
+                # )
 
-                st.write(
-                    f"Số cây được chọn: {n_estimators}"
-                )
+                # st.write(
+                #     f"Số cây được chọn: {n_estimators}"
+                # )
 
 
-                st.write(
-                    f"Độ sâu cây: {max_depth}"
-                )
+                # st.write(
+                #     f"Độ sâu cây: {max_depth}"
+                # )
 
                 # ==========================================
                 # KẾT QUẢ DỰ ĐOÁN
