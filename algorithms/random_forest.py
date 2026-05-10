@@ -17,10 +17,7 @@ def run_random_forest(
     y_test,
 ):
 
-    # ==========================================
-    # RANDOM THAM SỐ
-    # ==========================================
-
+   
     n_estimators = 100 
     max_depth = 10
 
@@ -32,7 +29,8 @@ def run_random_forest(
         n_estimators=n_estimators,
         max_depth=max_depth,
         class_weight="balanced",
-        random_state=42
+        random_state=42,
+        oob_score=True, 
     )
 
     # ==========================================

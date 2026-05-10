@@ -92,9 +92,18 @@ def preprocess_classification_data(df):
     encoded_data = data.copy()
 
     for col in encoded_data.columns:
-        le = LabelEncoder()
-        encoded_data[col] = le.fit_transform(encoded_data[col].astype(str))
-        encoders[col] = le
+
+        if not pd.api.types.is_numeric_dtype(
+            encoded_data[col]
+        ):
+
+            le = LabelEncoder()
+
+            encoded_data[col] = le.fit_transform(
+                encoded_data[col].astype(str)
+            )
+
+            encoders[col] = le
 
     X = encoded_data[feature_cols]
     y = encoded_data[target_col]

@@ -403,7 +403,7 @@ if uploaded_file is not None:
 
             input_values = {}
 
-            st.write("Chọn giá trị cho từng thuộc tính:")
+            st.write("Chọn giá trị dự báo:")
 
             for col in feature_cols:
                 values = original_data[col].unique().tolist()
@@ -501,6 +501,8 @@ if uploaded_file is not None:
     # ==================================================
 
         elif algorithm == "K-means":
+            
+
 
             st.subheader("GOM CỤM K-MEANS")
 
@@ -522,8 +524,8 @@ if uploaded_file is not None:
             ):
 
                 model, initial_result, final_result, encoded_result, scaled_data, initial_centroids = run_kmeans(
-                df,
-                 k
+                     df,
+                    k
                 )
 
                 st.success("Gom cụm K-means thành công!")

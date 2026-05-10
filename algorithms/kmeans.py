@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,10 +12,9 @@ from utils.preprocessing import basic_preprocessing, encode_data
 
 
 def run_kmeans(df, k):
-    data = basic_preprocessing(df)
+   
 
-    encoded_data, encoders = encode_data(data)
-
+    encoded_data, encoders = encode_data(df)
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(encoded_data)
 
@@ -34,7 +34,7 @@ def run_kmeans(df, k):
         initial_centroids
     )
 
-    initial_result = data.copy()
+    initial_result = df.copy()
     initial_result["Initial Cluster"] = initial_clusters
 
     model = KMeans(
@@ -46,7 +46,7 @@ def run_kmeans(df, k):
 
     final_clusters = model.fit_predict(scaled_data)
 
-    final_result = data.copy()
+    final_result = df.copy()
     final_result["Final Cluster"] = final_clusters
 
     encoded_result = encoded_data.copy()
